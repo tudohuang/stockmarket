@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockSim Pro - 模擬股市交易</title>
+  <meta name="description" content="模擬股市交易遊戲，支援美股與台股真實數據，體驗買賣股票的樂趣">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <rect width="60" height="60" rx="16" fill="url(#logo-gradient)" />
+          <path d="M15 38L22 28L30 33L38 20L45 25" stroke="white" stroke-width="3" stroke-linecap="round"
+            stroke-linejoin="round" />
+          <circle cx="45" cy="25" r="3" fill="#00FFB2" />
+          <defs>
+            <linearGradient id="logo-gradient" x1="0" y1="0" x2="60" y2="60">
+              <stop stop-color="#6366f1" />
+              <stop offset="1" stop-color="#06b6d4" />
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="loading-title">StockSim Pro</h1>
+      <p class="loading-subtitle">載入市場數據中...</p>
+      <div class="loading-bar">
+        <div class="loading-bar-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app" class="app hidden">
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <svg width="36" height="36" viewBox="0 0 60 60" fill="none">
+            <rect width="60" height="60" rx="16" fill="url(#logo-gradient2)" />
+            <path d="M15 38L22 28L30 33L38 20L45 25" stroke="white" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round" />
+            <circle cx="45" cy="25" r="3" fill="#00FFB2" />
+            <defs>
+              <linearGradient id="logo-gradient2" x1="0" y1="0" x2="60" y2="60">
+                <stop stop-color="#6366f1" />
+                <stop offset="1" stop-color="#06b6d4" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="logo-text">StockSim</span>
+        </div>
+      </div>
+
+      <div class="sidebar-balance">
+        <span class="balance-label">可用資金</span>
+        <span class="balance-amount" id="sidebar-balance">$1,000,000</span>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li>
+          <button class="nav-btn active" data-page="dashboard" id="nav-dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span>市場總覽</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-page="trade" id="nav-trade">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+              <polyline points="16 7 22 7 22 13" />
+            </svg>
+            <span>股票交易</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-page="portfolio" id="nav-portfolio">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+            </svg>
+            <span>我的持倉</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-page="history" id="nav-history">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>交易紀錄</span>
+          </button>
+        </li>
+        <li>
+          <button class="nav-btn" data-page="leaderboard" id="nav-leaderboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7" />
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7" />
+              <path d="M4 22h16" />
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+            </svg>
+            <span>績效排行</span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="reset-btn" id="reset-game" title="重新開始遊戲">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span>重新開始</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menu-toggle">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <h1 class="page-title" id="page-title">市場總覽</h1>
+        </div>
+        <div class="header-right">
+          <div class="search-container">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="global-search" class="search-input" placeholder="搜尋股票代號或名稱...">
+            <div class="search-results" id="search-results"></div>
+          </div>
+          <div class="header-stats">
+            <div class="header-stat">
+              <span class="stat-label">總資產</span>
+              <span class="stat-value" id="header-total-assets">$1,000,000</span>
+            </div>
+            <div class="header-stat">
+              <span class="stat-label">總損益</span>
+              <span class="stat-value" id="header-total-pnl">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Pages -->
+      <div class="page-container">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+          <!-- Account Summary Cards -->
+          <div class="summary-cards">
+            <div class="summary-card card-gradient-1">
+              <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23" />
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+              </div>
+              <div class="card-info">
+                <span class="card-label">可用資金</span>
+                <span class="card-value" id="dash-cash">$1,000,000</span>
+              </div>
+            </div>
+            <div class="summary-card card-gradient-2">
+              <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+              </div>
+              <div class="card-info">
+                <span class="card-label">持股市值</span>
+                <span class="card-value" id="dash-holdings">$0</span>
+              </div>
+            </div>
+            <div class="summary-card card-gradient-3">
+              <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
+              </div>
+              <div class="card-info">
+                <span class="card-label">總損益</span>
+                <span class="card-value" id="dash-pnl">$0.00</span>
+              </div>
+            </div>
+            <div class="summary-card card-gradient-4">
+              <div class="card-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20V10" />
+                  <path d="M18 20V4" />
+                  <path d="M6 20v-4" />
+                </svg>
+              </div>
+              <div class="card-info">
+                <span class="card-label">報酬率</span>
+                <span class="card-value" id="dash-return">0.00%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Market Indices -->
+          <section class="section">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              主要指數
+            </h2>
+            <div class="indices-grid" id="indices-grid">
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+              <div class="index-card skeleton-card">
+                <div class="skeleton-content"></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Popular Stocks -->
+          <section class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon
+                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+                熱門股票
+              </h2>
+              <div class="tab-group">
+                <button class="tab-btn active" data-market="us" id="tab-us">🇺🇸 美股</button>
+                <button class="tab-btn" data-market="tw" id="tab-tw">🇹🇼 台股</button>
+                <button class="tab-btn" data-market="jp" id="tab-jp">🇯🇵 日股</button>
+                <button class="tab-btn" data-market="crypto" id="tab-crypto">₿ 虛擬貨幣</button>
+                <button class="tab-btn" data-market="etf" id="tab-etf">📊 ETF</button>
+                <button class="tab-btn" data-market="futures" id="tab-futures">🛢️ 期貨/貴金屬</button>
+              </div>
+            </div>
+            <div class="stocks-table-container">
+              <table class="stocks-table" id="popular-stocks-table">
+                <thead>
+                  <tr>
+                    <th>代號</th>
+                    <th>名稱</th>
+                    <th class="text-right">價格</th>
+                    <th class="text-right">漲跌</th>
+                    <th class="text-right">漲跌幅</th>
+                    <th class="text-right">成交量</th>
+                    <th class="text-center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="popular-stocks-body">
+                  <tr>
+                    <td colspan="7" class="loading-cell">載入中...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Trade Page -->
+        <div class="page" id="page-trade">
+          <div class="trade-layout">
+            <!-- Stock Info & Chart -->
+            <div class="trade-chart-section">
+              <div class="stock-header-card" id="stock-header-card">
+                <div class="stock-header-placeholder">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                    opacity="0.3">
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+                    <polyline points="16 7 22 7 22 13" />
+                  </svg>
+                  <p>使用上方搜尋列搜尋股票，或從熱門股票選擇</p>
+                </div>
+              </div>
+
+              <div class="chart-container" id="chart-container" style="display:none;">
+                <div class="chart-toolbar">
+                  <div class="chart-range-btns">
+                    <button class="range-btn" data-range="1d">1日</button>
+                    <button class="range-btn" data-range="5d">5日</button>
+                    <button class="range-btn active" data-range="1mo">1月</button>
+                    <button class="range-btn" data-range="3mo">3月</button>
+                    <button class="range-btn" data-range="6mo">6月</button>
+                    <button class="range-btn" data-range="1y">1年</button>
+                    <button class="range-btn" data-range="5y">5年</button>
+                  </div>
+                </div>
+                <canvas id="price-chart" width="800" height="400"></canvas>
+              </div>
+
+              <!-- Analysis Panel -->
+              <div class="analysis-panel" id="analysis-panel" style="display:none;">
+                <h3 class="order-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path
+                      d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                    </path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                  課堂教學：技術分析
+                </h3>
+                <div class="analysis-content">
+                  <div class="analysis-item">
+                    <span class="analysis-label">趨勢判定 (MA20)：</span>
+                    <span class="analysis-value" id="analysis-trend">計算中...</span>
+                  </div>
+                  <div class="analysis-item">
+                    <span class="analysis-label">相對強弱 (RSI 14)：</span>
+                    <span class="analysis-value" id="analysis-rsi">計算中...</span>
+                  </div>
+                  <div class="analysis-item tip-item">
+                    <span class="analysis-label">💡 交易提示：</span>
+                    <span class="analysis-value" id="analysis-tip">--</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Company Information Panel -->
+              <div class="analysis-panel" id="company-panel" style="display:none;">
+                <h3 class="order-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  公司/標的簡介
+                </h3>
+                <div class="analysis-content">
+                  <div class="analysis-item">
+                    <span class="analysis-label">板塊/類別：</span>
+                    <span class="analysis-value" id="comp-sector">--</span> / <span class="analysis-value"
+                      id="comp-industry" style="color:var(--text-secondary)">--</span>
+                  </div>
+                  <div class="analysis-item tip-item"
+                    style="border-left-color: var(--accent-primary); background: transparent; padding: 0;">
+                    <p id="comp-summary"
+                      style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-top: 8px;">--</p>
+                  </div>
+                  <a href="#" target="_blank" id="comp-website"
+                    style="display:none; color:var(--accent-primary); font-size: 0.85rem; text-decoration: none; align-self: flex-start; margin-top: 8px;">🌐
+                    造訪官方網站 →</a>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Order Panel -->
+            <div class="order-panel" id="order-panel" style="display:none;">
+              <h3 class="order-title">下單交易</h3>
+              <div class="order-tabs">
+                <button class="order-tab active" data-action="buy" id="btn-buy">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                    <polyline points="17 6 23 6 23 12" />
+                  </svg>
+                  買入
+                </button>
+                <button class="order-tab" data-action="sell" id="btn-sell">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                    <polyline points="17 18 23 18 23 12" />
+                  </svg>
+                  賣出
+                </button>
+              </div>
+
+              <div class="order-form">
+                <div class="order-field">
+                  <label>股票代號</label>
+                  <input type="text" id="order-symbol" class="order-input" readonly>
+                </div>
+                <div class="order-field">
+                  <label>當前價格</label>
+                  <input type="text" id="order-price" class="order-input" readonly>
+                </div>
+                <div class="order-field">
+                  <label>數量（股）</label>
+                  <div class="qty-input-group">
+                    <button class="qty-btn" id="qty-minus">−</button>
+                    <input type="number" id="order-qty" class="order-input" value="1" min="1">
+                    <button class="qty-btn" id="qty-plus">+</button>
+                  </div>
+                </div>
+                <div class="order-field">
+                  <label>預估金額</label>
+                  <span class="order-estimate" id="order-estimate">$0.00</span>
+                </div>
+                <div class="order-field">
+                  <label>可用資金</label>
+                  <span class="order-cash" id="order-cash">$1,000,000</span>
+                </div>
+                <!-- Leverage Settings -->
+                <div class="order-field">
+                  <label>使用槓桿 (開源保證金)</label>
+                  <div class="tab-group" style="margin-top: 8px;">
+                    <button class="tab-btn active leverage-btn" data-lever="1">1x (現貨)</button>
+                    <button class="tab-btn leverage-btn" data-lever="2">2x</button>
+                    <button class="tab-btn leverage-btn" data-lever="5">5x</button>
+                    <button class="tab-btn leverage-btn" data-lever="10">10x</button>
+                  </div>
+                </div>
+
+                <div class="order-field" id="order-margin-field" style="display:none;">
+                  <label>所需保證金</label>
+                  <span class="order-estimate" id="order-margin-estimate">$0.00</span>
+                </div>
+
+                <div class="order-field" id="order-holding-field" style="display:none;">
+                  <label>持有數量</label>
+                  <span class="order-holding" id="order-holding">0</span>
+                </div>
+
+                <div class="quick-qty-btns">
+                  <button class="quick-btn" data-pct="25">25%</button>
+                  <button class="quick-btn" data-pct="50">50%</button>
+                  <button class="quick-btn" data-pct="75">75%</button>
+                  <button class="quick-btn" data-pct="100">100%</button>
+                </div>
+
+                <button class="submit-order-btn buy-btn" id="submit-order">
+                  確認買入
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portfolio Page -->
+        <div class="page" id="page-portfolio">
+          <div class="portfolio-summary-row">
+            <div class="portfolio-stat-card">
+              <span class="pstat-label">總資產</span>
+              <span class="pstat-value" id="port-total">$1,000,000</span>
+            </div>
+            <div class="portfolio-stat-card">
+              <span class="pstat-label">持股市值</span>
+              <span class="pstat-value" id="port-market-value">$0</span>
+            </div>
+            <div class="portfolio-stat-card">
+              <span class="pstat-label">現金</span>
+              <span class="pstat-value" id="port-cash">$1,000,000</span>
+            </div>
+            <div class="portfolio-stat-card">
+              <span class="pstat-label">未實現損益</span>
+              <span class="pstat-value" id="port-unrealized">$0.00</span>
+            </div>
+            <div class="portfolio-stat-card">
+              <span class="pstat-label">已實現損益</span>
+              <span class="pstat-value" id="port-realized">$0.00</span>
+            </div>
+          </div>
+
+          <section class="section">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" />
+              </svg>
+              持股明細
+            </h2>
+            <div class="stocks-table-container">
+              <table class="stocks-table">
+                <thead>
+                  <tr>
+                    <th>代號</th>
+                    <th>名稱</th>
+                    <th class="text-right">持有股數</th>
+                    <th class="text-right">均價</th>
+                    <th class="text-right">現價</th>
+                    <th class="text-right">市值</th>
+                    <th class="text-right">損益</th>
+                    <th class="text-right">報酬率</th>
+                    <th class="text-center">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="portfolio-body">
+                  <tr>
+                    <td colspan="9" class="empty-cell">尚無持股，快去交易吧！</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- History Page -->
+        <div class="page" id="page-history">
+          <section class="section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                交易紀錄
+              </h2>
+              <div class="history-stats">
+                <span class="history-stat" id="history-count">共 0 筆交易</span>
+              </div>
+            </div>
+            <div class="stocks-table-container">
+              <table class="stocks-table">
+                <thead>
+                  <tr>
+                    <th>時間</th>
+                    <th>類型</th>
+                    <th>代號</th>
+                    <th>名稱</th>
+                    <th class="text-right">數量</th>
+                    <th class="text-right">價格</th>
+                    <th class="text-right">金額</th>
+                  </tr>
+                </thead>
+                <tbody id="history-body">
+                  <tr>
+                    <td colspan="7" class="empty-cell">尚無交易紀錄</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <!-- Leaderboard Page -->
+        <div class="page" id="page-leaderboard">
+          <section class="section">
+            <h2 class="section-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 7 7" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 17 7 17 7" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+              </svg>
+              績效排行榜
+            </h2>
+            <div class="leaderboard-container">
+              <div class="leaderboard-card podium-1">
+                <div class="podium-medal">🏆</div>
+                <div class="podium-name" id="lb-name-1">—</div>
+                <div class="podium-return" id="lb-return-1">—</div>
+              </div>
+              <div class="leaderboard-info">
+                <p class="leaderboard-text">排行榜會記錄你每次重新開始的績效！<br>以起始資金 NT$1,000,000 為基準計算報酬率。</p>
+                <div class="past-records" id="past-records">
+                  <!-- filled by JS -->
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Trade Confirmation Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="trade-modal">
+      <div class="modal-header">
+        <h3 id="modal-title">確認交易</h3>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="modal-btn cancel" id="modal-cancel">取消</button>
+        <button class="modal-btn confirm" id="modal-confirm">確認</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
